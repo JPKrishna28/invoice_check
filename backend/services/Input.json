@@ -1,0 +1,6 @@
+{
+  "sample_input": {
+    "invoice_data": "Sample invoice extraction result will be stored here",
+    "po_data": "Sample PO extraction result will be stored here"
+  }
+}

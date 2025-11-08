@@ -1,9 +1,6 @@
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import tempfile
-from backend.services.gemini_service import extract_from_pdf
-from backend.services.comparer import compare_invoice_po
-from backend.routes import compare
+from .routes import compare
 
 app = FastAPI(title="Invoice vs PO Agent using Gemini")
 
@@ -23,18 +20,6 @@ app.include_router(compare.router)
 def home():
     return {"message": "Backend is running with Gemini API 🚀"}
 
-@app.post("/compare")
-async def compare_files(invoice: UploadFile = File(...), po: UploadFile = File(...)):
-    """Send both PDFs to Gemini for extraction + intelligent comparison"""
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_invoice, \
-         tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_po:
-        
-        temp_invoice.write(await invoice.read())
-        temp_po.write(await po.read())
-
-        invoice_data = extract_from_pdf(temp_invoice.name)
-        po_data = extract_from_pdf(temp_po.name)
-
-        result = compare_invoice_po(invoice_data, po_data)
-
-    return {"comparison_result": result}
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

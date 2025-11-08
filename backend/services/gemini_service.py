@@ -1,5 +1,6 @@
 import google.generativeai as genai
 import os
+import base64
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -10,24 +11,35 @@ def extract_from_pdf(pdf_path: str):
     """
     Send PDF to Gemini to extract structured data (invoice/PO).
     """
-    model = genai.GenerativeModel("gemini-1.5-flash")
-    with open(pdf_path, "rb") as f:
-        pdf_content = f.read()
+    try:
+        model = genai.GenerativeModel("gemini-1.5-flash")
+        with open(pdf_path, "rb") as f:
+            pdf_content = f.read()
 
-    prompt = """
-    You are a data extraction assistant.
-    Extract structured key information from this PDF.
-    Return JSON with fields:
-    - DocumentType (Invoice or PurchaseOrder)
-    - VendorName
-    - InvoiceNumber or PONumber
-    - Date
-    - TotalAmount
-    - LineItems: [ {Description, Quantity, UnitPrice, Total} ]
-    """
+        # Encode PDF content to base64
+        pdf_base64 = base64.b64encode(pdf_content).decode('utf-8')
 
-    response = model.generate_content([
-        {"role": "user", "parts": [prompt, {"mime_type": "application/pdf", "data": pdf_content}]}
-    ])
+        prompt = """
+        You are a data extraction assistant.
+        Extract structured key information from this PDF.
+        Return JSON with fields:
+        - DocumentType (Invoice or PurchaseOrder)
+        - VendorName
+        - InvoiceNumber or PONumber
+        - Date
+        - TotalAmount
+        - LineItems: [ {Description, Quantity, UnitPrice, Total} ]
+        """
 
-    return response.text  # JSON string
+        response = model.generate_content([
+            prompt,
+            {
+                "mime_type": "application/pdf",
+                "data": pdf_base64
+            }
+        ])
+
+        return response.text  # JSON string
+    
+    except Exception as e:
+        return f"Error extracting data from PDF: {str(e)}"

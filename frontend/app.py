@@ -8,7 +8,7 @@ st.set_page_config(page_title="Invoice vs PO Reconciliation", page_icon="📄")
 st.title("📄 Invoice vs Purchase Order Reconciliation Agent")
 
 # Backend URL (FastAPI)
-BACKEND_URL = "http://127.0.0.1:8000/api/compare"
+BACKEND_URL = "http://127.0.0.1:8000/compare"
 
 
 # 🧾 File uploaders
