@@ -2,17 +2,33 @@ import google.generativeai as genai
 import os
 import base64
 from dotenv import load_dotenv
+from pathlib import Path
 
-load_dotenv()
+# Load environment variables from multiple possible locations
+env_path = Path(__file__).parent.parent / '.env'  # backend/.env
+load_dotenv(env_path)
+root_env_path = Path(__file__).parent.parent.parent / '.env'  # root/.env
+load_dotenv(root_env_path)
 
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+# Configure Gemini with API key
+api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+if not api_key:
+    raise ValueError("No API key found. Please set GOOGLE_API_KEY or GEMINI_API_KEY in your .env file")
+
+genai.configure(api_key=api_key)
 
 def extract_from_pdf(pdf_path: str):
     """
     Send PDF to Gemini to extract structured data (invoice/PO).
     """
     try:
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        # Debug: Check if API key is available
+        current_api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+        print(f"DEBUG: API key available: {'Yes' if current_api_key else 'No'}")
+        if current_api_key:
+            print(f"DEBUG: API key starts with: {current_api_key[:10]}...")
+        
+        model = genai.GenerativeModel("gemini-2.0-flash")
         with open(pdf_path, "rb") as f:
             pdf_content = f.read()
 
@@ -42,4 +58,5 @@ def extract_from_pdf(pdf_path: str):
         return response.text  # JSON string
     
     except Exception as e:
+        print(f"DEBUG: Error in extract_from_pdf: {str(e)}")
         return f"Error extracting data from PDF: {str(e)}"

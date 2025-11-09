@@ -1,16 +1,27 @@
 import google.generativeai as genai
 import os
 from dotenv import load_dotenv
+from pathlib import Path
 from .parser import parse_gemini_json_response
 
-load_dotenv()
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+# Load environment variables from multiple possible locations
+env_path = Path(__file__).parent.parent / '.env'  # backend/.env
+load_dotenv(env_path)
+root_env_path = Path(__file__).parent.parent.parent / '.env'  # root/.env
+load_dotenv(root_env_path)
+
+# Configure Gemini with API key
+api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+if not api_key:
+    raise ValueError("No API key found. Please set GOOGLE_API_KEY or GEMINI_API_KEY in your .env file")
+
+genai.configure(api_key=api_key)
 
 def compare_invoice_po(invoice_text: str, po_text: str) -> dict:
     """
     Use Gemini to intelligently compare extracted invoice and PO data.
     """
-    model = genai.GenerativeModel("gemini-1.5-pro")
+    model = genai.GenerativeModel("gemini-2.0-flash")
 
     prompt = f"""
     You are an expert document reconciliation agent.
